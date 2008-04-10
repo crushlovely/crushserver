@@ -17,28 +17,19 @@ Capistrano::Configuration.instance(:must_exist).load do
     desc "create database.yml"
     task :create_database_yml do
       # Gather some info
-      set :db_user, Capistrano::CLI.ui.ask("Database User (defaults to deploy): ")
       set :db_pass, Capistrano::CLI.password_prompt("Database Password: ")
-      set :db_host, Capistrano::CLI.ui.ask("Database Host (defaults to 10.0.1.125): ")
-      set :db_adapter, Capistrano::CLI.ui.ask("Database Adapter (defaults to mysql): ")
 
       # Set defaults
-      set :db_user, "deploy" unless db_user
-      set :db_host, "10.0.1.125" unless db_host
-      set :db_adapter, "mysql" unless db_adapter
+      set :db_user, "deploy"
+      set :db_host, "localhost"
+      set :db_adapter, "mysql"
       database_configuration =<<-EOF
----
-login: &login
+#{rails_env}:
   adapter: #{db_adapter}
   host: #{db_host}
   username: #{db_user}
   password: #{db_pass}
-
-#{rails_env}:
-  <<: *login
-  host: #{db_host}
   database: #{application}_#{rails_env}
-
 EOF
 
       run "mkdir -p #{shared_path}/config"
@@ -48,7 +39,7 @@ EOF
 
     desc "Copy apache conf file to proper location on server"
     task :copy_apache_conf_file do
-      sudo "cp #{current_path}/config/apache/#{deploy_to_server}.conf /etc/httpd/conf/apps/#{application}.conf"
+      sudo "cp #{current_path}/config/apache/#{stage}.conf /etc/httpd/conf/apps/#{application}.conf"
     end
 
     desc "Stream log from rails"
@@ -75,14 +66,6 @@ EOF
     task :server_top do
       sudo_stream "top -b -n1"
       #sudo "top -b -n1"
-    end
-
-
-    desc "Copy Apache conf file and restart Apache after running typical deployment"
-    task :deploy_with_apache_conf do
-      deploy
-      copy_apache_conf_file
-      restart_web
     end
 
     desc "Remove log, tmp, and database.yml files from repository."

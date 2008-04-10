@@ -15,11 +15,11 @@ setup_rdoc ['README', 'LICENSE', 'lib/**/*.rb', 'doc/**/*.rdoc']
 desc "Does a full compile, test run"
 task :default => [:test, :package]
 
-version="0.0.1"
+version="0.0.2"
 name="bdgserver"
 
 setup_gem(name, version) do |spec|
-  spec.summary = "The BDG Server task library"
+  spec.summary = "The BDG Server Task Library"
   spec.description = spec.summary
   spec.author="PJ Kelly, Mason Browne"
   spec.add_dependency('capistrano', '>= 2.0.0')
