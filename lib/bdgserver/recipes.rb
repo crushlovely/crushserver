@@ -1,5 +1,12 @@
 Capistrano::Configuration.instance(:must_exist).load do
 
+  namespace(:db) do
+    desc "Execute db:populate rake task in appropriate environment"
+    task :populate do
+      sudo "cd #{current_path}; rake RAILS_ENV=#{rails_env} db:populate"
+    end
+  end
+
   namespace(:bdg) do
     namespace(:localize) do
       # This should be overridden in deploy.rb
@@ -36,6 +43,10 @@ EOF
       put database_configuration, "#{shared_path}/config/database.yml"
     end
 
+    desc "Clean database sessions older than 12 hours"
+    task :clean_sessions do
+      sudo "cd #{current_path}; RAILS_ENV=#{rails_env} script/runner 'ActiveRecord::Base.connection.delete(\"DELETE FROM sessions WHERE updated_at < now() - 12*3600\")'"
+    end
 
     desc "Copy apache conf file to proper location on server"
     task :copy_apache_conf_file do
