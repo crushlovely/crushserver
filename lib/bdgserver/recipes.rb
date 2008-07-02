@@ -118,8 +118,42 @@ EOF
       puts "committing changes"
       system "svn commit -m 'Removed and ignored database.yml'"
     end
-  
-  end
+
+    desc "Create a local database.yml file (for use after it's been ignored by svn)"
+    task :create_local_database_yml do
+      database_yml_path = 'config/database.yml'
+      question = "This task will over-write #{database_yml_path} if it exists.  Are you sure you wish to continue? (y/n) "
+      if Capistrano::CLI.ui.ask(question) == 'y'
+        puts
+        puts "First we need some configuration info..."
+        puts
+        set :db_user, Capistrano::CLI.ui.ask("Database User: ")
+        set :db_password, Capistrano::CLI.password_prompt("Database Password: ")
+        set :db_host, "localhost"
+        set :db_adapter, "mysql"
+        database_configuration =<<-EOF
+local: &local
+  adapter: mysql
+  host: localhost
+  username: #{db_user}
+  password: #{db_password}
+
+development:
+  database: #{application}_development
+  <<: *local
+
+test:
+  database: #{application}_test
+  <<: *local
+EOF
+        system "touch #{database_yml_path} && > #{database_yml_path}"
+        system "echo \"#{database_configuration}\" >> #{database_yml_path}"
+        puts
+        puts "Success! #{database_yml_path} has been created!"
+      else
+        puts "Goodbye."
+      end
+    end
 
 end
 
