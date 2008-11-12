@@ -18,7 +18,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       set :config_files, []
 
       desc "copy shared configurations to current"
-      task :copy_shared_configurations, :roles => [:app] do
+      task :copy_shared_configurations do
         config_files.each do |f|
           run "ln -nsf #{shared_path}/config/#{f} #{current_path}/config/#{f}"
         end
