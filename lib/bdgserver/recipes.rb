@@ -17,10 +17,10 @@ Capistrano::Configuration.instance(:must_exist).load do
       # This should be overridden in deploy.rb
       set :config_files, []
 
-      desc "copy shared configurations to current"
+      desc "copy shared configurations to new release.  this task should be called after deploy:update_code like so: after 'deploy:update_code', 'bdg:localize:copy_shared_configurations'"
       task :copy_shared_configurations do
         config_files.each do |f|
-          run "ln -nsf #{shared_path}/config/#{f} #{current_path}/config/#{f}"
+          run "ln -nsf #{shared_path}/config/#{f} #{release_path}/config/#{f}"
         end
       end
     end
