@@ -15,7 +15,7 @@ setup_rdoc ['README', 'LICENSE', 'lib/**/*.rb', 'doc/**/*.rdoc']
 desc "Does a full compile, test run"
 task :default => [:test, :package]
 
-version="0.0.6"
+version="0.1"
 name="bdgserver"
 
 setup_gem(name, version) do |spec|

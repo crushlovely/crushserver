@@ -18,7 +18,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       set :config_files, []
 
       desc "copy shared configurations to new release.  this task should be called after deploy:update_code like so: after 'deploy:update_code', 'bdg:localize:copy_shared_configurations'"
-      task :copy_shared_configurations do
+      task :copy_shared_configurations, :roles => [:app] do
         config_files.each do |f|
           run "ln -nsf #{shared_path}/config/#{f} #{release_path}/config/#{f}"
         end
