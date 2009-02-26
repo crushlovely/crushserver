@@ -2,5 +2,5 @@ LICENSE
 README
 Rakefile
 lib
-lib/bdgserver
-lib/bdgserver/recipes.rb
+lib/crushserver
+lib/crushserver/recipes.rb

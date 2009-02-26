@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name    = 'bdgserver'
+  s.name    = 'crushserver'
   s.version = '0.1'
   s.date    = '2009-02-26'
 
@@ -8,9 +8,9 @@ Gem::Specification.new do |s|
 
   s.authors  = ['PJ Kelly', 'Mason Browne']
   s.email    = 'admin@crushlovely.com'
-  s.homepage = 'http://github.com/boomdesigngroup/bdgserver/tree/master'
+  s.homepage = 'http://github.com/boomdesigngroup/crushserver/tree/master'
 
   s.has_rdoc = false
 
-  s.files = %w(LICENSE README Rakefile lib lib/bdgserver lib/bdgserver/recipes.rb)
+  s.files = %w(LICENSE README Rakefile lib lib/crushserver lib/crushserver/recipes.rb)
 end
