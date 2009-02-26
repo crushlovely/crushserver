@@ -1,51 +1,31 @@
-require 'rake'
-require 'rake/testtask'
-require 'rake/clean'
-require 'rake/gempackagetask'
-require 'rake/rdoctask'
-require 'tools/rakehelp'
-require 'fileutils'
-include FileUtils
+require 'rubygems'
 
-setup_tests
-setup_clean ["pkg", "lib/*.bundle", "*.gem", ".config"]
+# From will_paginate gem: http://wiki.github.com/mislav/will_paginate
+desc %{Update ".manifest" with the latest list of project filenames. Respect\
+.gitignore by excluding everything that git ignores. Update `files` and\
+`test_files` arrays in "*.gemspec" file if it's present.}
+task :manifest do
+  list = Dir['**/*'].sort
+  spec_file = Dir['*.gemspec'].first
+  list -= [spec_file] if spec_file
+  
+  File.read('.gitignore').each_line do |glob|
+    glob = glob.chomp.sub(/^\//, '')
+    list -= Dir[glob]
+    list -= Dir["#{glob}/**/*"] if File.directory?(glob) and !File.symlink?(glob)
+    puts "excluding #{glob}"
+  end
 
-setup_rdoc ['README', 'LICENSE', 'lib/**/*.rb', 'doc/**/*.rdoc']
-
-desc "Does a full compile, test run"
-task :default => [:test, :package]
-
-version="0.1"
-name="bdgserver"
-
-setup_gem(name, version) do |spec|
-  spec.summary = "The BDG Server Task Library"
-  spec.description = spec.summary
-  spec.author="PJ Kelly, Mason Browne"
-  spec.add_dependency('capistrano', '>= 2.0.0')
-  spec.has_rdoc = false
-  spec.files += Dir.glob("bin/*")
-  spec.files += Dir.glob("resources/**/*")
-  # spec.default_executable = "bdgserver"
-  # spec.executables = ["bdgserver"]
+  if spec_file
+    spec = File.read spec_file
+    spec.gsub! /^(\s* s.(test_)?files \s* = \s* )( \[ [^\]]* \] | %w\( [^)]* \) )/mx do
+      assignment = $1
+      bunch = $2 ? list.grep(/^test\//) : list
+      '%s%%w(%s)' % [assignment, bunch.join(' ')]
+    end
+      
+    File.open(spec_file,   'w') {|f| f << spec }
+  end
+  File.open('.manifest', 'w') {|f| f << list.join("\n") }
 end
 
-
-task :install => [:test, :package] do
-  sh %{sudo gem install pkg/#{name}-#{version}.gem}
-end
-
-task :uninstall => [:clean] do
-  sh %{sudo gem uninstall #{name}}
-end
-
-task :gem_source do
-  mkdir_p "pkg/gems"
-
-  FileList["**/*.gem"].each { |gem| mv gem, "pkg/gems" }
-  FileList["pkg/*.tgz"].each {|tgz| rm tgz }
-  rm_rf "pkg/#{name}-#{version}"
-
-  sh %{ generate_yaml_index.rb -d pkg }
-  # sh %{ scp -r pkg/* #{ENV['SSH_USER']}@rubyforge.org:/var/www/gforge-projects/railsmachine/releases/ }
-end
