@@ -12,6 +12,20 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
   end
 
+  namespace(:asset) do
+    namespace(:packager) do
+      desc "Execute asset:packager:build_all rake task in appropriate environment"
+      task :build_all do
+        run "cd #{current_path}; rake RAILS_ENV=#{rails_env} asset:packager:build_all"
+      end
+
+      desc "Execute asset:packager:delete_all rake task in appropriate environment"
+      task :delete_all do
+        run "cd #{current_path}; rake RAILS_ENV=#{rails_env} asset:packager:delete_all"
+      end
+    end
+  end
+
   namespace(:bdg) do
     namespace(:localize) do
       # This should be overridden in deploy.rb
