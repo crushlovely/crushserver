@@ -3,12 +3,12 @@ Capistrano::Configuration.instance(:must_exist).load do
   namespace(:db) do
     desc "Execute db:populate rake task in appropriate environment"
     task :populate do
-      run "cd #{release_path}; rake RAILS_ENV=#{rails_env} db:populate"
+      run "cd #{current_path}; rake RAILS_ENV=#{rails_env} db:populate"
     end
 
     desc "Execute db:seed rake task in appropriate environment"
     task :seed do
-      run "cd #{release_path}; rake RAILS_ENV=#{rails_env} db:seed"
+      run "cd #{current_path}; rake RAILS_ENV=#{rails_env} db:seed"
     end
   end
 
@@ -64,17 +64,17 @@ EOF
 
     desc "Clean database sessions older than 12 hours"
     task :clean_sessions do
-      sudo "cd #{release_path}; RAILS_ENV=#{rails_env} script/runner 'ActiveRecord::Base.connection.delete(\"DELETE FROM sessions WHERE updated_at < now() - 12*3600\")'"
+      sudo "cd #{current_path}; RAILS_ENV=#{rails_env} script/runner 'ActiveRecord::Base.connection.delete(\"DELETE FROM sessions WHERE updated_at < now() - 12*3600\")'"
     end
 
     desc "Copy apache conf file to proper location on server"
     task :copy_apache_conf_file do
-      sudo "cp #{release_path}/config/apache/#{stage}.conf /etc/httpd/conf/apps/#{application}.conf"
+      sudo "cp #{current_path}/config/apache/#{stage}.conf /etc/httpd/conf/apps/#{application}.conf"
     end
 
     desc "Stream log from rails"
     task :log, :roles => :app do
-      stream "tail -f #{release_path}/log/#{rails_env}.log"
+      stream "tail -f #{current_path}/log/#{rails_env}.log"
     end
 
     desc "Stream access log"
