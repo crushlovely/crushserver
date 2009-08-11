@@ -15,12 +15,12 @@ Capistrano::Configuration.instance(:must_exist).load do
   namespace(:asset) do
     namespace(:packager) do
       desc "Execute asset:packager:build_all rake task in appropriate environment"
-      task :build_all do
+      task :build_all, :roles => [:app] do
         run "cd #{release_path}; rake RAILS_ENV=#{rails_env} asset:packager:build_all"
       end
 
       desc "Execute asset:packager:delete_all rake task in appropriate environment"
-      task :delete_all do
+      task :delete_all, :roles => [:app] do
         run "cd #{release_path}; rake RAILS_ENV=#{rails_env} asset:packager:delete_all"
       end
     end
