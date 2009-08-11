@@ -2,12 +2,12 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   namespace(:db) do
     desc "Execute db:populate rake task in appropriate environment"
-    task :populate do
+    task :populate, :roles => :app, :only => { :primary => true } do
       run "cd #{current_path}; rake RAILS_ENV=#{rails_env} db:populate"
     end
 
     desc "Execute db:seed rake task in appropriate environment"
-    task :seed do
+    task :seed, :roles => :app, :only => { :primary => true } do
       run "cd #{current_path}; rake RAILS_ENV=#{rails_env} db:seed"
     end
   end
