@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name    = 'crushserver'
-  s.version = '0.1.4'
+  s.version = '0.1.5'
   s.date    = '2009-08-11'
 
   s.summary = "A collection of capistrano tasks we use frequently."
