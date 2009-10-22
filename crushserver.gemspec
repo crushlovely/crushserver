@@ -1,14 +1,14 @@
 Gem::Specification.new do |s|
   s.name    = 'crushserver'
-  s.version = '0.1.5'
-  s.date    = '2009-08-11'
+  s.version = '0.1.6'
+  s.date    = '2009-10-22'
 
   s.summary = "A collection of capistrano tasks we use frequently."
   s.description = s.summary
 
   s.authors  = ['PJ Kelly', 'Mason Browne']
   s.email    = 'admin@crushlovely.com'
-  s.homepage = 'http://github.com/boomdesigngroup/crushserver/tree/master'
+  s.homepage = 'http://github.com/crushlovely/crushserver/tree/master'
 
   s.has_rdoc = false
 
