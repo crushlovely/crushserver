@@ -13,7 +13,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc "Copy attachments from staging server."
-    task :attachments do
+    task :attachments, :roles => :app, :only => { :primary => true } do
       FileUtils.mkdir_p "public/system"
       # While we could use the following command...
       # download("#{shared_path}/system", "public/system", :recursive => true)
