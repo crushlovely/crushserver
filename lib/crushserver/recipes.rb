@@ -12,15 +12,13 @@ Capistrano::Configuration.instance(:must_exist).load do
       backup.mirror
     end
 
-    desc "Copy attachments from staging server."
+    desc "Copy attachments from server."
     task :attachments, :roles => :app, :only => { :primary => true } do
       FileUtils.mkdir_p "public/system"
       # While we could use the following command...
       # download("#{shared_path}/system", "public/system", :recursive => true)
       # let's use rsync instead so we only download what we need...
-      c = "rsync --delete --recursive --times --rsh=ssh --compress --human-readable --progress #{user}@#{domain}:#{shared_path}/system/ public/system/"
-      logger.info(c)
-      system c
+      system "rsync --delete --recursive --times --rsh=ssh --compress --human-readable --progress #{user}@#{domain}:#{shared_path}/system/ public/system/"
     end
   end
 
