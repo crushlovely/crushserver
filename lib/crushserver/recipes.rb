@@ -18,7 +18,9 @@ Capistrano::Configuration.instance(:must_exist).load do
       # While we could use the following command...
       # download("#{shared_path}/system", "public/system", :recursive => true)
       # let's use rsync instead so we only download what we need...
-      system "rsync --delete --recursive --times --rsh=ssh --compress --human-readable --progress #{user}@#{domain}:#{shared_path}/system/ public/system/"
+      c = "rsync --delete --recursive --times --rsh=ssh --compress --human-readable --progress #{user}@#{domain}:#{shared_path}/system/ public/system/"
+      logger.info(c)
+      system c
     end
   end
 
