@@ -91,10 +91,10 @@ HERE
     result = String.new
     begin
       current, previous, latest = current_revision[0,7], previous_revision[0,7], real_revision[0,7]
-      result << "===== Master Revision: \033[1;33m#{latest}\033[0m\n\n"
-      result << "===== [ \033[1;36m#{application} - #{stage}\033[0m ]"
-      result << "=== Deployed Revision: \033[1;32m#{current}\033[0m"
-      result << "=== Previous Revision: \033[1;32m#{previous}\033[0m\n\n"
+      result << "===== Master Revision: #{latest}\n\n"
+      result << "===== [ #{application} - #{stage} ]\n"
+      result << "=== Deployed Revision: #{current}\n"
+      result << "=== Previous Revision: #{previous}\n"
 
       # If deployed and master are the same, show the difference between the last 2 deployments.
       base_label, new_label, base_rev, new_rev = latest != current ? \
@@ -104,7 +104,6 @@ HERE
       # Show difference between master and deployed revisions.
       if (diff = `git log #{base_rev}..#{new_rev} --oneline`) != ""
         # Colorize refs
-        diff.gsub!(/^([a-f0-9]+) /, "\033[1;32m\\1\033[0m - ")
         diff = "    " << diff.gsub("\n", "\n    ") << "\n"
         # Indent commit messages nicely, max 80 chars per line, line has to end with space.
         diff = diff.split("\n").map{|l|l.scan(/.{1,120}/).join("\n"<<" "*14).gsub(/([^ ]*)\n {14}/m,"\n"<<" "*14<<"\\1")}.join("\n")
