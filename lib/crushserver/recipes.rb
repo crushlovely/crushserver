@@ -62,13 +62,13 @@ Capistrano::Configuration.instance(:must_exist).load do
         campfire = Tinder::Campfire.new ENV['CAMPFIRE_SUBDOMAIN'], :ssl => true, :token => ENV['CAMPFIRE_TOKEN']
         room = campfire.find_room_by_name ENV['CAMPFIRE_ROOM']
         snitch_message = fetch(:snitch_message) { ENV['MESSAGE'] || abort('Capfire snitch message is missing. Use set :snitch_message, "Your message"') }
-        room.speak(snitch_message)
+        room.paste(snitch_message)
       end
     end
 
     desc "Send a message to the campfire chat room about the deploy start"
     task :snitch_start do
-      message = "#{ENV['USER'].upcase} is deploying #{application.upcase}.  Please stand by..."
+      message = "#{ENV['USER'].upcase} is deploying #{application.upcase} to #{stage.to_s.upcase}.  Please stand by..."
       set :snitch_message, message
       snitch
     end
