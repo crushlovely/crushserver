@@ -66,23 +66,35 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
     end
 
+    desc "Send a message to the campfire chat room about the deploy start"
+    task :snitch_start do
+      message = "#{ENV['USER'].upcase} is deploying #{application.upcase}.  Please stand by..."
+      set :snitch_message, message
+      snitch
+    end
+
     desc "Send a message to the campfire chat room about the deploy end"
     task :snitch_end do
-      # set :snitch_message, "END DEPLOY [#{stage.to_s.upcase}]: #{ENV['USER']}, #{branch}/#{real_revision[0, 7]} to #{deploy_to}"
-      set :snitch_message, "#{application.upcase} was deployed to #{stage.to_s.upcase} by #{ENV['USER'].upcase} (#{branch}/#{real_revision[0, 7]})"
+      revisions
+      message = <<HERE
+#{application.upcase} was deployed to #{stage.to_s.upcase} by #{ENV['USER'].upcase} (#{branch}/#{real_revision[0, 7]})
+
+#{revisions_result}
+HERE
+      set :snitch_message, message
       snitch
     end
   end
 
   desc "Show currently deployed revision on server."
   task :revisions, :roles => :app do
+    result = String.new
     begin
       current, previous, latest = current_revision[0,7], previous_revision[0,7], real_revision[0,7]
-      puts "\n" << "-"*63
-      puts "===== Master Revision: \033[1;33m#{latest}\033[0m\n\n"
-      puts "===== [ \033[1;36m#{application} - #{stage}\033[0m ]"
-      puts "=== Deployed Revision: \033[1;32m#{current}\033[0m"
-      puts "=== Previous Revision: \033[1;32m#{previous}\033[0m\n\n"
+      result << "===== Master Revision: \033[1;33m#{latest}\033[0m\n\n"
+      result << "===== [ \033[1;36m#{application} - #{stage}\033[0m ]"
+      result << "=== Deployed Revision: \033[1;32m#{current}\033[0m"
+      result << "=== Previous Revision: \033[1;32m#{previous}\033[0m\n\n"
 
       # If deployed and master are the same, show the difference between the last 2 deployments.
       base_label, new_label, base_rev, new_rev = latest != current ? \
@@ -96,20 +108,24 @@ Capistrano::Configuration.instance(:must_exist).load do
         diff = "    " << diff.gsub("\n", "\n    ") << "\n"
         # Indent commit messages nicely, max 80 chars per line, line has to end with space.
         diff = diff.split("\n").map{|l|l.scan(/.{1,120}/).join("\n"<<" "*14).gsub(/([^ ]*)\n {14}/m,"\n"<<" "*14<<"\\1")}.join("\n")
-        puts "=== Difference between #{base_label} revision and #{new_label} revision:\n\n"
-        puts diff
+        result << "=== Difference between #{base_label} revision and #{new_label} revision:\n\n"
+        result << diff
       end
     rescue
-        puts "=== Revisions Task Failed!"
+      result << "=== Revisions Task Failed!"
     end
+    set :revisions_result, result
   end
 
   #############################################################
   # Hooks
   #############################################################
 
+  before :deploy do
+    campfire.snitch_start unless ENV['QUIET'].to_i > 0
+  end
+
   after :deploy do
     campfire.snitch_end unless ENV['QUIET'].to_i > 0
-    revisions
   end
 end
