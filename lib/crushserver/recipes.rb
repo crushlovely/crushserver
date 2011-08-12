@@ -103,7 +103,6 @@ HERE
 
       # Show difference between master and deployed revisions.
       if (diff = `git log #{base_rev}..#{new_rev} --oneline`) != ""
-        # Colorize refs
         diff = "    " << diff.gsub("\n", "\n    ") << "\n"
         # Indent commit messages nicely, max 80 chars per line, line has to end with space.
         diff = diff.split("\n").map{|l|l.scan(/.{1,120}/).join("\n"<<" "*14).gsub(/([^ ]*)\n {14}/m,"\n"<<" "*14<<"\\1")}.join("\n")
