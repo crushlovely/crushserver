@@ -1,4 +1,6 @@
-require 'tinder'
+require 'etc'
+require 'yaml'
+
 Capistrano::Configuration.instance(:must_exist).load do
   namespace :sync do
     desc "Sync both database and attachments to local machine.  Requires awesome-backup plugin."
