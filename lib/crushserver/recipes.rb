@@ -98,15 +98,13 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
 
       task :notify_deploy_started do
-        if hipchat_send_notification
-          on_rollback do
-            hipchat_client[hipchat_room_name].
-              send(deploy_user, deploy_canceled_message, hipchat_announce)
-          end
-
+        on_rollback do
           hipchat_client[hipchat_room_name].
-            send(deploy_user, deploy_started_message, hipchat_announce)
+            send(deploy_user, deploy_canceled_message, hipchat_announce)
         end
+
+        hipchat_client[hipchat_room_name].
+          send(deploy_user, deploy_started_message, hipchat_announce)
       end
 
       task :notify_deploy_finished do
