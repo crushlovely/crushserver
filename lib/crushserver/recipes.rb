@@ -3,14 +3,8 @@ require 'hipchat'
 
 Capistrano::Configuration.instance(:must_exist).load do
   set :crushserver_config_file, File.join(ENV['HOME'], '.crushserver.yml')
-
-  task :crushserver_config_exists? do
-    File.exist?(crushserver_config_file)
-  end
-
-  task :crushserver_config do
-    @config ||= crushserver_config_exists? ? YAML.load_file(crushserver_config_file) : nil
-  end
+  set :crushserver_config_exists?, File.exist?(crushserver_config_file)
+  set :crushserver_config, (crushserver_config_exists? ? YAML.load_file(crushserver_config_file) : nil)
 
   namespace(:db) do
     desc "Execute db:seed rake task in appropriate environment"
@@ -38,10 +32,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
   end
 
-  task :hipchat_config_exists? do
-    crushserver_config && crushserver_config['hipchat'] && crushserver_config['hipchat']['token'] && crushserver_config['hipchat']['room_name']
-  end
-
+  set :hipchat_config_exists?, (crushserver_config && crushserver_config['hipchat'] && crushserver_config['hipchat']['token'] && crushserver_config['hipchat']['room_name'])
   set :notify_via_hipchat, true
 
   if hipchat_config_exists? && notify_via_hipchat
@@ -62,6 +53,8 @@ Capistrano::Configuration.instance(:must_exist).load do
         else
           base_url = repository.gsub('git@', 'http://').gsub(':', '/').gsub('.git', '')
           @revision_url = [base_url, 'commit', deployed_revision].join('/')
+          logger.important "Revision URL is: #{@revision_url}"
+          @revision_url
         end
       end
 
