@@ -6,12 +6,8 @@ if File.exist?(crushserver_config_file)
   require 'hipchat/capistrano'
 end
 
-def crushserver_config?
-  !@crushserver_config.nil?
-end
-
 Capistrano::Configuration.instance(:must_exist).load do
-  if crushserver_config?
+  if @crushserver_config
     set :hipchat_token, @crushserver_config['hipchat']['token']
     set :hipchat_room_name, @crushserver_config['hipchat']['room_name']
     set :hipchat_announce, @crushserver_config['hipchat']['announce']
