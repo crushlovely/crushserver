@@ -1,15 +1,16 @@
-crushserver_config_file = File.join(ENV['HOME'], '.crushserver.yml')
-
-if File.exist?(crushserver_config_file)
-  require 'yaml'
-  @crushserver_config = YAML.load_file(crushserver_config_file)
-end
-
-def valid_hipchat_config?
-  @crushserver_config && @crushserver_config['hipchat'] && @crushserver_config['hipchat']['token'] && @crushserver_config['hipchat']['room_name']
-end
+require 'yaml'
 
 Capistrano::Configuration.instance(:must_exist).load do
+  set :crushserver_config_file, File.join(ENV['HOME'], '.crushserver.yml')
+
+  task :crushserver_config_exists? do
+    File.exist?(crushserver_config_file)
+  end
+
+  task :crushserver_config do
+    @config ||= crushserver_config_exists? ? YAML.load_file(crushserver_config_file) : nil
+  end
+
   namespace(:db) do
     desc "Execute db:seed rake task in appropriate environment"
     task :seed, :roles => :app, :only => { :primary => true } do
@@ -36,77 +37,83 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
   end
 
-  namespace :hipchat do
-    set :hipchat_token, @crushserver_config['hipchat']['token']
-    set :hipchat_room_name, @crushserver_config['hipchat']['room_name']
-    set :hipchat_announce, @crushserver_config['hipchat']['announce']
-    set :hipchat_client, HipChat::Client.new(hipchat_token)
-
-    def deployed_revision
-      @deployed_revision ||= real_revision[0,7]
-    end
-
-    # Convert our Git URL to an HTTP one. This isn't very elegant, but will do for now.
-    def revision_url
-      if @revision_url
-        @revision_url
-      else
-        base_url = repository.gsub('git@', 'http://').gsub(':', '/').gsub('.git', '')
-        @revision_url = [base_url, 'commit', deployed_revision].join('/')
-      end
-    end
-
-    def link_to_commit
-      %{<a href="#{revision_url}">#{branch}/#{deployed_revision}</a>}
-    end
-
-    def deployer
-      ENV['HIPCHAT_USER'] ||
-        fetch(:hipchat_human,
-              if (u = %x{git config user.name}.strip) != ""
-                u
-              elsif (u = ENV['USER']) != ""
-                u
-              else
-                "Someone"
-              end)
-    end
-
-    def deploy_user
-      fetch(:hipchat_deploy_user, "CrushBot")
-    end
-
-    task :deploy_started_message do
-      "#{deployer} is deploying #{application} to #{stage}. (#{link_to_commit})"
-    end
-
-    task :deploy_canceled_message do
-      "#{deployer} cancelled deployment of #{application} to #{stage}. (#{link_to_commit})"
-    end
-
-    task :deploy_finished_message do
-      "#{deployer} finished deploying #{application} to #{stage}. (#{link_to_commit})"
-    end
-
-    task :notify_deploy_started do
-      if hipchat_send_notification
-        on_rollback do
-          hipchat_client[hipchat_room_name].
-            send(deploy_user, deploy_canceled_message, hipchat_announce)
-        end
-
-        hipchat_client[hipchat_room_name].
-          send(deploy_user, deploy_started_message, hipchat_announce)
-      end
-    end
-
-    task :notify_deploy_finished do
-      hipchat_client[hipchat_room_name].
-        send(deploy_user, deploy_finished_message, hipchat_announce)
-    end
+  task :hipchat_config_exists? do
+    crushserver_config && crushserver_config['hipchat'] && crushserver_config['hipchat']['token'] && crushserver_config['hipchat']['room_name']
   end
 
-  if valid_hipchat_config?
+  set :notify_via_hipchat, true
+
+  if hipchat_config_exists? && notify_via_hipchat
+    namespace :hipchat do
+      set :hipchat_token, crushserver_config['hipchat']['token']
+      set :hipchat_room_name, crushserver_config['hipchat']['room_name']
+      set :hipchat_announce, crushserver_config['hipchat']['announce']
+      set :hipchat_client, HipChat::Client.new(hipchat_token)
+
+      def deployed_revision
+        @deployed_revision ||= real_revision[0,7]
+      end
+
+      # Convert our Git URL to an HTTP one. This isn't very elegant, but will do for now.
+      def revision_url
+        if @revision_url
+          @revision_url
+        else
+          base_url = repository.gsub('git@', 'http://').gsub(':', '/').gsub('.git', '')
+          @revision_url = [base_url, 'commit', deployed_revision].join('/')
+        end
+      end
+
+      def link_to_commit
+        %{<a href="#{revision_url}">#{branch}/#{deployed_revision}</a>}
+      end
+
+      def deployer
+        ENV['HIPCHAT_USER'] ||
+          fetch(:hipchat_human,
+                if (u = %x{git config user.name}.strip) != ""
+                  u
+                elsif (u = ENV['USER']) != ""
+                  u
+                else
+                  "Someone"
+                end)
+      end
+
+      def deploy_user
+        fetch(:hipchat_deploy_user, "CrushBot")
+      end
+
+      task :deploy_started_message do
+        "#{deployer} is deploying #{application} to #{stage}. (#{link_to_commit})"
+      end
+
+      task :deploy_canceled_message do
+        "#{deployer} cancelled deployment of #{application} to #{stage}. (#{link_to_commit})"
+      end
+
+      task :deploy_finished_message do
+        "#{deployer} finished deploying #{application} to #{stage}. (#{link_to_commit})"
+      end
+
+      task :notify_deploy_started do
+        if hipchat_send_notification
+          on_rollback do
+            hipchat_client[hipchat_room_name].
+              send(deploy_user, deploy_canceled_message, hipchat_announce)
+          end
+
+          hipchat_client[hipchat_room_name].
+            send(deploy_user, deploy_started_message, hipchat_announce)
+        end
+      end
+
+      task :notify_deploy_finished do
+        hipchat_client[hipchat_room_name].
+          send(deploy_user, deploy_finished_message, hipchat_announce)
+      end
+    end
+
     before "deploy", "hipchat:notify_deploy_started"
     after  "deploy", "hipchat:notify_deploy_finished"
   end
