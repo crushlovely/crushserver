@@ -47,14 +47,21 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
 
       # Convert our Git URL to an HTTP one. This isn't very elegant, but will do for now.
+      #
+      # We are assuming a repository url like this in our capistrano config:
+      #
+      #   git@github.com:account/repo.git
+      #
+      # This would then convert to:
+      #
+      #   http://github.com/account/repo
+      #
       def revision_url
         if @revision_url
           @revision_url
         else
-          base_url = repository.gsub('git@', 'http://').gsub(':', '/').gsub('.git', '')
+          base_url = repository.gsub(':', '/').gsub('git@', 'http://').gsub('.git', '')
           @revision_url = [base_url, 'commit', deployed_revision].join('/')
-          logger.important "Revision URL is: #{@revision_url}"
-          @revision_url
         end
       end
 
