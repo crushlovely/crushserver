@@ -1,4 +1,5 @@
 require 'yaml'
+require 'hipchat'
 
 Capistrano::Configuration.instance(:must_exist).load do
   set :crushserver_config_file, File.join(ENV['HOME'], '.crushserver.yml')
